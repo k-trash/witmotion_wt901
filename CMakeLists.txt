@@ -6,10 +6,31 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 # find dependencies
-find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
+
+ament_auto_find_build_dependencies()
+
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
+
+#ament_auto_add_library(witmotion_wt901 SHARED
+#  src/wt901c485.cpp
+#)
+
+ament_auto_add_executable(witmotion_wt901_node src/wt901c485_node.cpp)
+
+target_link_libraries(witmotion_wt901_node
+  serial_connect
+)
+
+#  src/wt901c485_node.cpp
+#)
+
+#install(
+#  DIRECTORY include/
+#  DESTINATION include/
+#)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -23,4 +44,4 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_package()
+ament_auto_package()
