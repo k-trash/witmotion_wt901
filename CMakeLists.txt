@@ -14,23 +14,11 @@ ament_auto_find_build_dependencies()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
-#ament_auto_add_library(witmotion_wt901 SHARED
-#  src/wt901c485.cpp
-#)
-
 ament_auto_add_executable(witmotion_wt901_node src/wt901c485_node.cpp)
 
 target_link_libraries(witmotion_wt901_node
   serial_connect
 )
-
-#  src/wt901c485_node.cpp
-#)
-
-#install(
-#  DIRECTORY include/
-#  DESTINATION include/
-#)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
