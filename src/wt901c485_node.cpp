@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
 	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>("/mag_data", 10);
 	timer = node->create_wall_timer(std::chrono::milliseconds(100), &timerCallback);
 
-	serial.setSerial("/dev/ttyUSB0", 115200);
+	serial.setSerial("/dev/ttyUSB0", 115200, true);
 	serial.openSerial();
 
 	serial.setInterrupt(&serialCallback);
