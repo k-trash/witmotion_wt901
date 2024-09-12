@@ -62,9 +62,9 @@ void serialCallback(int32_t signal_){
 		imu_data.header.stamp = node->get_clock()->now();
 		mag_data.header.frame_id = "imu_link";
 		mag_data.header.stamp = node->get_clock()->now();
-		imu_data.linear_acceleration.x = static_cast<int16_t>((serial.recv_data[3] << 8) | serial.recv_data[4]) / 32768.0f * acc_range;
-		imu_data.linear_acceleration.y = static_cast<int16_t>((serial.recv_data[5] << 8) | serial.recv_data[6]) / 32768.0f * acc_range;
-		imu_data.linear_acceleration.z = static_cast<int16_t>((serial.recv_data[7] << 8) | serial.recv_data[8]) / 32768.0f * acc_range;
+		imu_data.linear_acceleration.x = static_cast<int16_t>((serial.recv_data[3] << 8) | serial.recv_data[4]) / 32768.0f * acc_range * 9.8f;
+		imu_data.linear_acceleration.y = static_cast<int16_t>((serial.recv_data[5] << 8) | serial.recv_data[6]) / 32768.0f * acc_range * 9.8f;
+		imu_data.linear_acceleration.z = static_cast<int16_t>((serial.recv_data[7] << 8) | serial.recv_data[8]) / 32768.0f * acc_range * 9.8f;
 		imu_data.angular_velocity.x    = static_cast<int16_t>((serial.recv_data[9] << 8) | serial.recv_data[10]) / 32768.0f * gyr_range;
 		imu_data.angular_velocity.y    = static_cast<int16_t>((serial.recv_data[11] << 8) | serial.recv_data[12]) / 32768.0f * gyr_range;
 		imu_data.angular_velocity.z    = static_cast<int16_t>((serial.recv_data[13] << 8) | serial.recv_data[14]) / 32768.0f * gyr_range;
@@ -74,19 +74,6 @@ void serialCallback(int32_t signal_){
 		rpy.x = static_cast<int16_t>((serial.recv_data[21] << 8) | serial.recv_data[22]) / 32768.0f * ang_range * M_PI / 180.0f;
 		rpy.y = static_cast<int16_t>((serial.recv_data[23] << 8) | serial.recv_data[24]) / 32768.0f * ang_range * M_PI / 180.0f;
 		rpy.z = static_cast<int16_t>((serial.recv_data[25] << 8) | serial.recv_data[26]) / 32768.0f * ang_range * M_PI / 180.0f;
-
-		//imu_data.linear_acceleration.x = static_cast<int16_t>((serial.recv_data[11] << 8) | serial.recv_data[12]) / 32768.0f * acc_range;
-		//imu_data.linear_acceleration.y = static_cast<int16_t>((rx_datas[13] << 8) | rx_datas[14]) / 32768.0f * acc_range;
-		//imu_data.linear_acceleration.z = static_cast<int16_t>((rx_datas[15] << 8) | rx_datas[16]) / 32768.0f * acc_range;
-		//imu_data.angular_velocity.x    = static_cast<int16_t>((rx_datas[17] << 8) | rx_datas[18]) / 32768.0f * gyr_range;
-		//imu_data.angular_velocity.y    = static_cast<int16_t>((rx_datas[19] << 8) | rx_datas[20]) / 32768.0f * gyr_range;
-		//imu_data.angular_velocity.z    = static_cast<int16_t>((rx_datas[21] << 8) | rx_datas[22]) / 32768.0f * gyr_range;
-		//mag_data.magnetic_field.x      = static_cast<int16_t>((rx_datas[23] << 8) | rx_datas[24]) / 32768.0f * mag_range;
-		//mag_data.magnetic_field.y      = static_cast<int16_t>((rx_datas[25] << 8) | rx_datas[26]) / 32768.0f * mag_range;
-		//mag_data.magnetic_field.z      = static_cast<int16_t>((rx_datas[27] << 8) | rx_datas[28]) / 32768.0f * mag_range;
-		//rpy.x = static_cast<int16_t>((rx_datas[29] << 8) | rx_datas[30]) / 32768.0f * ang_range * M_PI / 180.0f;
-		//rpy.y = static_cast<int16_t>((rx_datas[31] << 8) | rx_datas[32]) / 32768.0f * ang_range * M_PI / 180.0f;
-		//rpy.z = static_cast<int16_t>((rx_datas[33] << 8) | rx_datas[34]) / 32768.0f * ang_range * M_PI / 180.0f;
 
 		quat.setRPY(rpy.x, rpy.y, rpy.z);
 
@@ -147,11 +134,6 @@ void timerCallback(void){
 
 	send_data[0] = 0x50;
 	send_data[1] = 0x03;
-	//send_data[2] = 0x00;
-	//send_data[3] = 0x30;
-	//send_data[4] = 0x00;
-	//send_data[5] = 0x29;
-
 	send_data[2] = 0x00;
 	send_data[3] = 0x34;
 	send_data[4] = 0x00;
