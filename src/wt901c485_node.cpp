@@ -55,7 +55,7 @@ void serialCallback(int32_t signal_){
 
 	res = serial.readSerial();
 
-	RCLCPP_INFO(node->get_logger(), "serial interrupted %i", res);
+	RCLCPP_DEBUG(node->get_logger(), "serial interrupted %i", res);
 
 	if(res > 26){
 		imu_data.header.frame_id = "imu_link";
@@ -147,8 +147,6 @@ void timerCallback(void){
 
 	send_data[6] = crc_high;
 	send_data[7] = crc_low;
-
-	RCLCPP_INFO(node->get_logger(), "write serial.");
 
 	serial.writeSerial(send_data, 8);
 }
