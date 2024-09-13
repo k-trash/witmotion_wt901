@@ -11,7 +11,7 @@ I check this program only in ROS2 humble with ubuntu22.04.
 ### install serial_connect library
 
 ```
-git clone https://github.com/k-trash/serial_connect/tree/v1.1
+git clone -b v1.1.1 https://github.com/k-trash/serial_connect
 cd serial_connect
 mkdir build
 cd build
@@ -32,7 +32,7 @@ then reboot
 
 ```
 cd <Your-ROS2-WS>/src
-git clone https://github.com/k-trash/witmotion_wt901/
+git clone https://github.com/k-trash/witmotion_wt901
 cd ..
 colcon build --symlink-install --packages-select witmotion_wt901
 ```
