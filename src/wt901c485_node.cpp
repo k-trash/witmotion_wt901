@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
 	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>("/mag_data", 10);
 	timer = node->create_wall_timer(std::chrono::milliseconds(100), &timerCallback);
 
-	serial.setSerial("/dev/ttyUSB0", 115200, true);
+	serial.setSerial("/dev/ttyUSB0", B115200, true);
 	serial.openSerial();
 
 	serial.setInterrupt(&serialCallback);
@@ -151,4 +151,14 @@ void timerCallback(void){
 	RCLCPP_INFO(node->get_logger(), "write serial.");
 
 	serial.writeSerial(send_data, 8);
+}
+
+void SerialConnect::errorSerial(std::string error_str_){
+	if(error_out){
+		RCLCPP_ERROR(node->get_logger(), "Serial Fail: %s %s", error_str_.c_str(), device_name.c_str());
+	}
+}
+
+void SerialConnect::infoSerial(std::string info_str_){
+	RCLCPP_INFO(node->get_logger(), "Serial Info: %s %s", info_str_.c_str(), device_name.c_str());
 }
