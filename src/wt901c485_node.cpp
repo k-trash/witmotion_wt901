@@ -11,6 +11,7 @@
 
 void serialCallback(int32_t signal_);
 void timerCallback(void);
+uint16_t getCrc(uint8_t *datas_, uint8_t size_);
 
 rclcpp::Node::SharedPtr node;
 rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub;
@@ -52,12 +53,18 @@ void serialCallback(int32_t signal_){
 	geometry_msgs::msg::Vector3 rpy;
 	tf2::Quaternion quat;
 	int res = 0;
+	uint16_t crc_code = 0u;
 
 	res = serial.readSerial();
 
 	RCLCPP_DEBUG(node->get_logger(), "serial interrupted %i", res);
 
-	if(res > 26){
+	if(res == serial.recv_data[2]+5 and serial.recv_data[1] == 0x03){
+		crc_code = getCrc(serial.recv_data, res-2);
+		if(crc_code != ((serial.recv_data[res-2] << 8) | serial.recv_data[res-1])){
+			RCLCPP_WARN(node->get_logger(), "receive crc incorrect");
+			return;
+		}
 		imu_data.header.frame_id = "imu_link";
 		imu_data.header.stamp = node->get_clock()->now();
 		mag_data.header.frame_id = "imu_link";
@@ -89,6 +96,25 @@ void serialCallback(int32_t signal_){
 
 void timerCallback(void){
 	uint8_t send_data[8] = {0u};
+	uint16_t crc_code = 0u;
+
+	send_data[0] = 0x50;
+	send_data[1] = 0x03;
+	send_data[2] = 0x00;
+	send_data[3] = 0x34;
+	send_data[4] = 0x00;
+	send_data[5] = 0x0C;
+
+	crc_code = getCrc(send_data, 6);
+
+	send_data[6] = crc_code >> 8;
+	send_data[7] = crc_code & 0xff;
+
+	serial.writeSerial(send_data, 8);
+}
+
+uint16_t getCrc(uint8_t *datas_, uint8_t size_){
+	int16_t crc = 0u;
 	uint8_t crc_low = 0xff;
 	uint8_t crc_high = 0xff;
 	uint8_t crc_tmp = 0xff;
@@ -132,23 +158,13 @@ void timerCallback(void){
 		0x44, 0x84, 0x85, 0x45, 0x87, 0x47, 0x46, 0x86, 0x82, 0x42, 0x43, 0x83, 0x41, 0x81, 0x80,
 		0x40};
 
-	send_data[0] = 0x50;
-	send_data[1] = 0x03;
-	send_data[2] = 0x00;
-	send_data[3] = 0x34;
-	send_data[4] = 0x00;
-	send_data[5] = 0x0C;
-
-	for(uint8_t i=0; i<6;i++){
-		crc_tmp  = (crc_high ^ send_data[i]) & 0xff;
+	for(uint8_t i=0; i<size_;i++){
+		crc_tmp  = (crc_high ^ datas_[i]) & 0xff;
 		crc_high = (crc_low ^ crc_high_array[crc_tmp]) & 0xff;
 		crc_low  = crc_low_array[crc_tmp];
 	}
 
-	send_data[6] = crc_high;
-	send_data[7] = crc_low;
-
-	serial.writeSerial(send_data, 8);
+	return crc_high << 8 | crc_low;
 }
 
 void SerialConnect::errorSerial(std::string error_str_){
