@@ -82,7 +82,7 @@ void serialCallback(int32_t signal_){
 		rpy.y = static_cast<int16_t>((serial.recv_data[23] << 8) | serial.recv_data[24]) / 32768.0f * ang_range * M_PI / 180.0f;
 		rpy.z = static_cast<int16_t>((serial.recv_data[25] << 8) | serial.recv_data[26]) / 32768.0f * ang_range * M_PI / 180.0f;
 
-		quat.setRPY(rpy.x, rpy.y, rpy.z);
+		quat.setRPY(rpy.x, rpy.y, rpy.z);			//convert from rpy to quaternion
 
 		imu_data.orientation.x = quat.x();
 		imu_data.orientation.y = quat.y();
@@ -167,6 +167,7 @@ uint16_t getCrc(uint8_t *datas_, uint8_t size_){
 	return crc_high << 8 | crc_low;
 }
 
+//change output screen of serial_connect
 void SerialConnect::errorSerial(std::string error_str_){
 	if(error_out){
 		RCLCPP_ERROR(node->get_logger(), "Serial Fail: %s %s", error_str_.c_str(), device_name.c_str());
