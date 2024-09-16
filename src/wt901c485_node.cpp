@@ -59,7 +59,7 @@ void serialCallback(int32_t signal_){
 
 	RCLCPP_DEBUG(node->get_logger(), "serial interrupted %i", res);
 
-	if(res == serial.recv_data[2]+5 and serial.recv_data[1] == 0x03){
+	if(serial.recv_data[0] == 0x50 and res == serial.recv_data[2]+5 and serial.recv_data[1] == 0x03){			//check data length
 		crc_code = getCrc(serial.recv_data, res-2);
 		if(crc_code != ((serial.recv_data[res-2] << 8) | serial.recv_data[res-1])){
 			RCLCPP_WARN(node->get_logger(), "receive crc incorrect");
