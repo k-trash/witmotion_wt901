@@ -1,10 +1,16 @@
 <?xml version="1.0"?>
 <launch>
+	<arg name="imu_topic" default="imu/data_raw" description="imu topic name"/>
+	<arg name="mag_topic" default="mag/data_raw" description="magnet sensor topic name"/>
+	<arg name="port" default="/dev/ttyUSB0" description="device port name name"/>
+	<arg name="imu_frame_id" default="imu_link" description="imu link name"/>
+	<arg name="imu_freq" default="10" description="read frequency[Hz]"/>
+
 	<node pkg="witmotion_wt901" exec="witmotion_wt901_node" output="screen">
-		<param name="imu_topic" value="imu_data"/>
-		<param name="mag_topic" value="mag_data"/>
-		<param name="port" value="/dev/ttyUSB0"/>
-		<param name="imu_frame_id" value="imu_link"/>
-		<param name="imu_freq" value="10"/>
+		<param name="imu_topic" value="$(var imu_topic)"/>
+		<param name="mag_topic" value="$(var mag_topic)"/>
+		<param name="port" value="$(var port)"/>
+		<param name="imu_frame_id" value="$(var imu_frame_id)"/>
+		<param name="imu_freq" value="$(var imu_freq)"/>
 	</node>
 </launch>
