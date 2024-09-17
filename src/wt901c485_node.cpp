@@ -33,6 +33,7 @@ int main(int argc, char *argv[]){
 	node->declare_parameter<std::string>("port", "/dev/ttyUSB0");
 	node->declare_parameter<std::string>("imu_topic", "imu/data_raw");
 	node->declare_parameter<std::string>("mag_topic", "mag/data_raw");
+	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
 	node->declare_parameter<int64_t>("imu_freq", 10);
 
 	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
@@ -71,9 +72,9 @@ void serialCallback(int32_t signal_){
 			RCLCPP_WARN(node->get_logger(), "receive crc incorrect");
 			return;
 		}
-		imu_data.header.frame_id = "imu_link";
+		imu_data.header.frame_id = node->get_parameter("imu_frame_id").as_string();
 		imu_data.header.stamp = node->get_clock()->now();
-		mag_data.header.frame_id = "imu_link";
+		mag_data.header.frame_id = node->get_parameter("imu_frame_id").as_string();
 		mag_data.header.stamp = node->get_clock()->now();
 		imu_data.linear_acceleration.x = static_cast<int16_t>((serial.recv_data[3] << 8) | serial.recv_data[4]) / 32768.0f * acc_range * 9.8f;
 		imu_data.linear_acceleration.y = static_cast<int16_t>((serial.recv_data[5] << 8) | serial.recv_data[6]) / 32768.0f * acc_range * 9.8f;
