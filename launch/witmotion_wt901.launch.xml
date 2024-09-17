@@ -2,5 +2,8 @@
 <launch>
 	<node pkg="witmotion_wt901" exec="witmotion_wt901_node" output="screen">
 		<param name="imu_topic" value="imu_data"/>
+		<param name="mag_topic" value="mag_data"/>
+		<param name="device_name" value="/dev/ttyUSB0"/>
+		<param name="imu_freq" value="10"/>
 	</node>
 </launch>
