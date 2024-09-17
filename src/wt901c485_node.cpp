@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
 	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
 	serial.openSerial();
 
-	serial.setInterrupt(&serialCallback);
+	serial.setInterrupt(&serialCallback);		//set uart receive interruption
 
 	rclcpp::spin(node);
 
@@ -105,17 +105,17 @@ void timerCallback(void){
 	uint8_t send_data[8] = {0u};
 	uint16_t crc_code = 0u;
 
-	send_data[0] = 0x50;
+	send_data[0] = 0x50;			//imu's id
 	send_data[1] = 0x03;
 	send_data[2] = 0x00;
-	send_data[3] = 0x34;
+	send_data[3] = 0x34;			//start register (send_data[2] << 8 | send_data[3])
 	send_data[4] = 0x00;
-	send_data[5] = 0x0C;
+	send_data[5] = 0x0C;			//request data size (send_data[4]<<8 | send_data[5])
 
 	crc_code = getCrc(send_data, 6);
 
-	send_data[6] = crc_code >> 8;
-	send_data[7] = crc_code & 0xff;
+	send_data[6] = crc_code >> 8;		//crc code
+	send_data[7] = crc_code & 0xff;		//crc code
 
 	serial.writeSerial(send_data, 8);
 }
@@ -125,6 +125,7 @@ uint16_t getCrc(uint8_t *datas_, uint8_t size_){
 	uint8_t crc_high = 0xff;
 	uint8_t crc_tmp = 0xff;
 
+	//CRC array
 	uint8_t crc_high_array[256] = { 
 		0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
 		0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
