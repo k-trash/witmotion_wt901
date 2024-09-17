@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+	<node pkg="witmotion_wt901" exec="witmotion_wt901_node" output="screen">
+		<param name="imu_topic" value="imu_data"/>
+	</node>
+</launch>
