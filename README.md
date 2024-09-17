@@ -1,4 +1,4 @@
-# Witmotion WT901C485 ROS Driver
+# Witmotion WT901C485 ROS2 Driver
 
 ## Description
 
@@ -11,7 +11,7 @@ I check this program only in ROS2 humble with ubuntu22.04.
 ### install serial_connect library
 
 ```
-git clone -b v1.1.1 https://github.com/k-trash/serial_connect
+git clone -b release-precent_unclose https://github.com/k-trash/serial_connect
 cd serial_connect
 mkdir build
 cd build
