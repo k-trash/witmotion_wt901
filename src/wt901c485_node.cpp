@@ -33,13 +33,13 @@ int main(int argc, char *argv[]){
 	node->declare_parameter<std::string>("device_name", "/dev/ttyUSB0");
 	node->declare_parameter<std::string>("imu_topic", "imu/data_raw");
 	node->declare_parameter<std::string>("mag_topic", "mag/data_raw");
-	//node->declare_parameter<speed_t>("baudrate", B115200);
+	node->declare_parameter<int64_t>("imu_freq", 10);
 
 	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
-	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>("/mag_data", 10);
-	timer = node->create_wall_timer(std::chrono::milliseconds(100), &timerCallback);
+	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
+	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
 
-	serial.setSerial("/dev/ttyUSB0", B115200, true);
+	serial.setSerial(node->get_parameter("device_name").as_string(), B115200, true);
 	serial.openSerial();
 
 	serial.setInterrupt(&serialCallback);
