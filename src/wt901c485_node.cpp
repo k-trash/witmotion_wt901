@@ -121,7 +121,6 @@ void timerCallback(void){
 }
 
 uint16_t getCrc(uint8_t *datas_, uint8_t size_){
-	int16_t crc = 0u;
 	uint8_t crc_low = 0xff;
 	uint8_t crc_high = 0xff;
 	uint8_t crc_tmp = 0xff;
