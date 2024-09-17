@@ -11,7 +11,7 @@ I check this program only in ROS2 humble with ubuntu22.04.
 ### install serial_connect library
 
 ```
-git clone -b release-precent_unclose https://github.com/k-trash/serial_connect
+git clone -b v1.2 https://github.com/k-trash/serial_connect
 cd serial_connect
 mkdir build
 cd build
