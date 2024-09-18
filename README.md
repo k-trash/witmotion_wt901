@@ -52,4 +52,14 @@ cd <Your-ROS2-WS>
 source install/setup.bash
 ros2 run witmotion_wt901 witmotion_wt901_node
 ```
-then you can get /imu_data with sensor_msgs::msg::Imu message.
+you can also use launch file.
+```
+ros2 launch witmotion_wt901 witmotion_wt901.launch.xml
+```
+
+### output
+
+|topic name|topic type|
+| :--- | :--- |
+|/imu/data_raw|sensor_msgs::msg::Imu|
+|/mag/data_raw|sensor_msgs::msg::MagneticField|

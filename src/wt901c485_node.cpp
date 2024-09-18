@@ -30,19 +30,20 @@ int main(int argc, char *argv[]){
 	rclcpp::init(argc, argv);
 	node = rclcpp::Node::make_shared("imu_node");
 
-	node->declare_parameter<std::string>("device_name", "/dev/ttyUSB0");
+	node->declare_parameter<std::string>("port", "/dev/ttyUSB0");
 	node->declare_parameter<std::string>("imu_topic", "imu/data_raw");
 	node->declare_parameter<std::string>("mag_topic", "mag/data_raw");
+	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
 	node->declare_parameter<int64_t>("imu_freq", 10);
 
 	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
 	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
 	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
 
-	serial.setSerial(node->get_parameter("device_name").as_string(), B115200, true);
+	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
 	serial.openSerial();
 
-	serial.setInterrupt(&serialCallback);
+	serial.setInterrupt(&serialCallback);		//set uart receive interruption
 
 	rclcpp::spin(node);
 
@@ -71,9 +72,9 @@ void serialCallback(int32_t signal_){
 			RCLCPP_WARN(node->get_logger(), "receive crc incorrect");
 			return;
 		}
-		imu_data.header.frame_id = "imu_link";
+		imu_data.header.frame_id = node->get_parameter("imu_frame_id").as_string();
 		imu_data.header.stamp = node->get_clock()->now();
-		mag_data.header.frame_id = "imu_link";
+		mag_data.header.frame_id = node->get_parameter("imu_frame_id").as_string();
 		mag_data.header.stamp = node->get_clock()->now();
 		imu_data.linear_acceleration.x = static_cast<int16_t>((serial.recv_data[3] << 8) | serial.recv_data[4]) / 32768.0f * acc_range * 9.8f;
 		imu_data.linear_acceleration.y = static_cast<int16_t>((serial.recv_data[5] << 8) | serial.recv_data[6]) / 32768.0f * acc_range * 9.8f;
@@ -104,27 +105,27 @@ void timerCallback(void){
 	uint8_t send_data[8] = {0u};
 	uint16_t crc_code = 0u;
 
-	send_data[0] = 0x50;
+	send_data[0] = 0x50;			//imu's id
 	send_data[1] = 0x03;
 	send_data[2] = 0x00;
-	send_data[3] = 0x34;
+	send_data[3] = 0x34;			//start register (send_data[2] << 8 | send_data[3])
 	send_data[4] = 0x00;
-	send_data[5] = 0x0C;
+	send_data[5] = 0x0C;			//request data size (send_data[4]<<8 | send_data[5])
 
 	crc_code = getCrc(send_data, 6);
 
-	send_data[6] = crc_code >> 8;
-	send_data[7] = crc_code & 0xff;
+	send_data[6] = crc_code >> 8;		//crc code
+	send_data[7] = crc_code & 0xff;		//crc code
 
 	serial.writeSerial(send_data, 8);
 }
 
 uint16_t getCrc(uint8_t *datas_, uint8_t size_){
-	int16_t crc = 0u;
 	uint8_t crc_low = 0xff;
 	uint8_t crc_high = 0xff;
 	uint8_t crc_tmp = 0xff;
 
+	//CRC array
 	uint8_t crc_high_array[256] = { 
 		0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81,
 		0x40, 0x01, 0xC0, 0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
