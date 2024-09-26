@@ -37,14 +37,14 @@ int main(int argc, char *argv[]){
 	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
 	node->declare_parameter<int64_t>("imu_freq", 10);
 
-	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
-	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
-	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
-
 	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
 	serial.openSerial();
 
 	accelCalibration();
+
+	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
+	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
+	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
 
 	RCLCPP_INFO(node->get_logger(), "Accelaration calibration finished");
 
