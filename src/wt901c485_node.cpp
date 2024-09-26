@@ -12,6 +12,7 @@
 
 void serialCallback(int32_t signal_);
 void timerCallback(void);
+void accelCalibration(void);
 uint16_t getCrc(uint8_t *datas_, uint8_t size_);
 
 rclcpp::Node::SharedPtr node;
@@ -42,6 +43,10 @@ int main(int argc, char *argv[]){
 
 	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
 	serial.openSerial();
+
+	accelCalibration();
+
+	RCLCPP_INFO(node->get_logger(), "Accelaration calibration finished");
 
 	serial.setInterrupt(&serialCallback);		//set uart receive interruption
 
@@ -118,6 +123,28 @@ void timerCallback(void){
 	send_data[7] = crc_code & 0xff;		//crc code
 
 	serial.writeSerial(send_data, 8);
+}
+
+void accelCalibration(void){
+	uint8_t write_data[5] = {0u};
+
+	write_data[0] = 0xff;
+	write_data[1] = 0xaa;
+	write_data[2] = 0x69;
+	write_data[3] = 0x88;
+	write_data[4] = 0x5b;
+
+	serial.writeSerial(write_data, 5);		//unlock imu
+
+	rclcpp::sleep_for(std::chrono::milliseconds(100));
+
+	write_data[2] = 0x01;
+	write_data[3] = 0x01;
+	write_data[4] = 0x00;
+
+	serial.writeSerial(write_data, 5);		//start calibration
+
+	rclcpp::sleep_for(std::chrono::milliseconds(5500));
 }
 
 uint16_t getCrc(uint8_t *datas_, uint8_t size_){
