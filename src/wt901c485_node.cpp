@@ -12,6 +12,7 @@
 
 void serialCallback(int32_t signal_);
 void timerCallback(void);
+void accelCalibration(void);
 uint16_t getCrc(uint8_t *datas_, uint8_t size_);
 
 rclcpp::Node::SharedPtr node;
@@ -36,12 +37,16 @@ int main(int argc, char *argv[]){
 	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
 	node->declare_parameter<int64_t>("imu_freq", 10);
 
+	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
+	serial.openSerial();
+
+	accelCalibration();
+
 	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
 	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
 	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
 
-	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
-	serial.openSerial();
+	RCLCPP_INFO(node->get_logger(), "Accelaration calibration finished");
 
 	serial.setInterrupt(&serialCallback);		//set uart receive interruption
 
@@ -76,12 +81,12 @@ void serialCallback(int32_t signal_){
 		imu_data.header.stamp = node->get_clock()->now();
 		mag_data.header.frame_id = node->get_parameter("imu_frame_id").as_string();
 		mag_data.header.stamp = node->get_clock()->now();
-		imu_data.linear_acceleration.x = static_cast<int16_t>((serial.recv_data[3] << 8) | serial.recv_data[4]) / 32768.0f * acc_range * 9.8f;
-		imu_data.linear_acceleration.y = static_cast<int16_t>((serial.recv_data[5] << 8) | serial.recv_data[6]) / 32768.0f * acc_range * 9.8f;
-		imu_data.linear_acceleration.z = static_cast<int16_t>((serial.recv_data[7] << 8) | serial.recv_data[8]) / 32768.0f * acc_range * 9.8f;
-		imu_data.angular_velocity.x    = static_cast<int16_t>((serial.recv_data[9] << 8) | serial.recv_data[10]) / 32768.0f * gyr_range;
-		imu_data.angular_velocity.y    = static_cast<int16_t>((serial.recv_data[11] << 8) | serial.recv_data[12]) / 32768.0f * gyr_range;
-		imu_data.angular_velocity.z    = static_cast<int16_t>((serial.recv_data[13] << 8) | serial.recv_data[14]) / 32768.0f * gyr_range;
+		imu_data.linear_acceleration.x = static_cast<int16_t>((serial.recv_data[3] << 8) | serial.recv_data[4]) / 32768.0f * acc_range * 9.8f;					//[m/s^2]
+		imu_data.linear_acceleration.y = static_cast<int16_t>((serial.recv_data[5] << 8) | serial.recv_data[6]) / 32768.0f * acc_range * 9.8f;					//[m/s^2]
+		imu_data.linear_acceleration.z = static_cast<int16_t>((serial.recv_data[7] << 8) | serial.recv_data[8]) / 32768.0f * acc_range * 9.8f;					//[m/s^2]
+		imu_data.angular_velocity.x    = static_cast<int16_t>((serial.recv_data[9] << 8) | serial.recv_data[10]) / 32768.0f * gyr_range * M_PI / 180.0f;		//[rad/s]
+		imu_data.angular_velocity.y    = static_cast<int16_t>((serial.recv_data[11] << 8) | serial.recv_data[12]) / 32768.0f * gyr_range * M_PI / 180.0f;		//[rad/s]
+		imu_data.angular_velocity.z    = static_cast<int16_t>((serial.recv_data[13] << 8) | serial.recv_data[14]) / 32768.0f * gyr_range * M_PI / 180.0f;		//[rad/s]
 		mag_data.magnetic_field.x      = static_cast<int16_t>((serial.recv_data[15] << 8) | serial.recv_data[16]) / 32768.0f * mag_range;
 		mag_data.magnetic_field.y      = static_cast<int16_t>((serial.recv_data[17] << 8) | serial.recv_data[18]) / 32768.0f * mag_range;
 		mag_data.magnetic_field.z      = static_cast<int16_t>((serial.recv_data[19] << 8) | serial.recv_data[20]) / 32768.0f * mag_range;
@@ -118,6 +123,28 @@ void timerCallback(void){
 	send_data[7] = crc_code & 0xff;		//crc code
 
 	serial.writeSerial(send_data, 8);
+}
+
+void accelCalibration(void){
+	uint8_t write_data[5] = {0u};
+
+	write_data[0] = 0xff;
+	write_data[1] = 0xaa;
+	write_data[2] = 0x69;
+	write_data[3] = 0x88;
+	write_data[4] = 0x5b;
+
+	serial.writeSerial(write_data, 5);		//unlock imu
+
+	rclcpp::sleep_for(std::chrono::milliseconds(100));
+
+	write_data[2] = 0x01;
+	write_data[3] = 0x01;
+	write_data[4] = 0x00;
+
+	serial.writeSerial(write_data, 5);		//start calibration
+
+	rclcpp::sleep_for(std::chrono::milliseconds(5500));
 }
 
 uint16_t getCrc(uint8_t *datas_, uint8_t size_){
