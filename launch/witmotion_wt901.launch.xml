@@ -4,7 +4,7 @@
 	<arg name="mag_topic" default="mag/data_raw" description="magnet sensor topic name"/>
 	<arg name="port" default="/dev/ttyUSB0" description="device port name name"/>
 	<arg name="imu_frame_id" default="imu_link" description="imu link name"/>
-	<arg name="imu_freq" default="10" description="read frequency[Hz]"/>
+	<arg name="imu_freq" default="100" description="read frequency[Hz]"/>
 
 	<node pkg="witmotion_wt901" exec="witmotion_wt901_node" output="screen">
 		<param name="imu_topic" value="$(var imu_topic)"/>
