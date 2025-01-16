@@ -35,7 +35,7 @@ int main(int argc, char *argv[]){
 	node->declare_parameter<std::string>("imu_topic", "imu/data_raw");
 	node->declare_parameter<std::string>("mag_topic", "mag/data_raw");
 	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
-	node->declare_parameter<int64_t>("imu_freq", 10);
+	node->declare_parameter<int64_t>("imu_freq", 100);
 
 	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
 	serial.openSerial();
