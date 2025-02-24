@@ -7,10 +7,12 @@
 #include <sensor_msgs/msg/magnetic_field.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <geometry_msgs/msg/vector3.hpp>
+#include <diagnostic_msgs/msg/diagnostic_array.hpp>
 
 #include <serial_connect/serial_connect.hpp>
 
 void serialCallback(int32_t signal_);
+void diagCallback(const diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg_);
 void timerCallback(void);
 void accelCalibration(void);
 uint16_t getCrc(uint8_t *datas_, uint8_t size_);
@@ -19,6 +21,7 @@ rclcpp::Node::SharedPtr node;
 rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub;
 rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr mag_pub;
 rclcpp::TimerBase::SharedPtr timer;
+rclcpp::Subscription<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr diag_sub;
 
 SerialConnect serial;
 
@@ -36,6 +39,7 @@ int main(int argc, char *argv[]){
 	node->declare_parameter<std::string>("mag_topic", "mag/data_raw");
 	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
 	node->declare_parameter<int64_t>("imu_freq", 100);
+	node->declare_parameter<std::string>("diag_name", "witmotion");
 
 	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
 	serial.openSerial();
@@ -45,6 +49,8 @@ int main(int argc, char *argv[]){
 	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
 	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
 	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
+
+	diag_sub = node->create_subscription<diagnostic_msgs::msg::DiagnosticArray>("/diagnostic", rclcpp::QoS(1000), std::bind(&diagCallback, std::placeholders::_1));
 
 	RCLCPP_INFO(node->get_logger(), "Accelaration calibration finished");
 
@@ -103,6 +109,23 @@ void serialCallback(int32_t signal_){
 
 		imu_pub->publish(imu_data);
 		mag_pub->publish(mag_data);
+	}
+}
+
+void diagCallback(const diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg_){
+	for(auto itr=msg_->status.begin(); itr!=msg_->status.end();itr++){
+		if(itr->name == node->get_parameter("diag_name").as_string()){
+			switch(itr->level){
+				case diagnostic_msgs::msg::DiagnosticStatus::WARN:
+				case diagnostic_msgs::msg::DiagnosticStatus::ERROR:
+				case diagnostic_msgs::msg::DiagnosticStatus::STALE:
+					serial.closeSerial();
+					serial.reconnectSerial();
+					break;
+				default:
+					break;
+			}
+		}
 	}
 }
 
