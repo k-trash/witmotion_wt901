@@ -157,6 +157,7 @@ void timerCallback(void){
 	send_data[7] = crc_code & 0xff;		//crc code
 
 	if(check_cnt++ > warn_cnt){
+		RCLCPP_WARN(node->get_logger(), "IMU : frequency drop is recognized");
 		serial.closeSerial();
 		serial.reconnectSerial();
 		check_cnt=0;
