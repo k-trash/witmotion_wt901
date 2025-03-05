@@ -5,6 +5,7 @@
 	<arg name="port" default="/dev/ttyUSB0" description="device port name name"/>
 	<arg name="imu_frame_id" default="imu_link" description="imu link name"/>
 	<arg name="imu_freq" default="100" description="read frequency[Hz]"/>
+	<arg name="baudrate" default="B115200" description="uart baudrate[bps]"/>
 
 	<node pkg="witmotion_wt901" exec="witmotion_wt901_node" output="screen">
 		<param name="imu_topic" value="$(var imu_topic)"/>
@@ -12,5 +13,6 @@
 		<param name="port" value="$(var port)"/>
 		<param name="imu_frame_id" value="$(var imu_frame_id)"/>
 		<param name="imu_freq" value="$(var imu_freq)"/>
+		<param name="baudrate" value="$(var baudrate)"/>
 	</node>
 </launch>
