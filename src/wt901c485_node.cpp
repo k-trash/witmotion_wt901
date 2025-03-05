@@ -8,6 +8,8 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <geometry_msgs/msg/vector3.hpp>
 
+#include <witmotion_wt901/witmotion.hpp>
+
 #include <serial_connect/serial_connect.hpp>
 
 void serialCallback(int32_t signal_);
