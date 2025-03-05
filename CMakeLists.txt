@@ -15,10 +15,16 @@ ament_auto_find_build_dependencies()
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 
+include_directories(include)
+link_directories(include)
+
+add_library(witmotion src/witmotion.cpp)
+
 ament_auto_add_executable(witmotion_wt901_node src/wt901c485_node.cpp)
 
 target_link_libraries(witmotion_wt901_node
   serial_connect
+  witmotion
 )
 
 install(DIRECTORY launch
