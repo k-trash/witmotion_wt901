@@ -4,17 +4,17 @@
 #include <cstdlib>
 #include <termios.h>
 
-speed_t checkBoudrate(const std::string boudrate_){
-	std::string boud_str;
-	if(boudrate_[0] == 'B'){
-		boud_str = boudrate_.substr(1);
+speed_t checkBaudrate(const std::string baudrate_){
+	std::string baud_str;
+	if(baudrate_[0] == 'B'){
+		baud_str = baudrate_.substr(1);
 	}else{
-		boud_str = boudrate_;
+		baud_str = baudrate_;
 	}
 
-	for(auto itr=baudrates.begin(); itr!=boudrates.end();itr++){
-		if(itr->int_boud == std::atoi(boud_str.c_str())){
-			return itr->speed_boud;
+	for(auto itr=baudrates.begin(); itr!=baudrates.end();itr++){
+		if(itr->int_baud == std::atoi(baud_str.c_str())){
+			return itr->speed_baud;
 		}
 	}
 
