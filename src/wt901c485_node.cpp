@@ -29,6 +29,8 @@ const double acc_range = 16.0f;
 const double gyr_range = 2000.0f;
 const double mag_range = 1.0f;
 const double ang_range = 180.0f;
+volatile uint8_t check_cnt = 0u;
+uint8_t warn_cnt = 0u;
 
 int main(int argc, char *argv[]){
 	rclcpp::init(argc, argv);
@@ -40,9 +42,16 @@ int main(int argc, char *argv[]){
 	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
 	node->declare_parameter<int64_t>("imu_freq", 100);
 	node->declare_parameter<std::string>("diag_name", "witmotion");
+	node->declare_parameter<int64_t>("warn_freq", 50);
 
 	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
 	serial.openSerial();
+
+	if((node->get_parameter("imu_freq").as_int()>>1) > node->get_parameter("warn_freq").as_int()){
+		warn_cnt = static_cast<uint8_t>(node->get_parameter("imu_freq").as_int()/node->get_parameter("warn_freq").as_int()) + 1;
+	}else{
+		warn_cnt = (node->get_parameter("imu_freq").as_int()>>1) + 1;
+	}
 
 	accelCalibration();
 
@@ -109,6 +118,8 @@ void serialCallback(int32_t signal_){
 
 		imu_pub->publish(imu_data);
 		mag_pub->publish(mag_data);
+
+		check_cnt=0;
 	}
 }
 
@@ -144,6 +155,12 @@ void timerCallback(void){
 
 	send_data[6] = crc_code >> 8;		//crc code
 	send_data[7] = crc_code & 0xff;		//crc code
+
+	if(check_cnt++ > warn_cnt){
+		serial.closeSerial();
+		serial.reconnectSerial();
+		check_cnt=0;
+	}
 
 	serial.writeSerial(send_data, 8);
 }
