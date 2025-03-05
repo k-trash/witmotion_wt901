@@ -6,6 +6,7 @@
 	<arg name="imu_frame_id" default="imu_link" description="imu link name"/>
 	<arg name="imu_freq" default="100" description="read frequency[Hz]"/>
 	<arg name="diag_name" deault="witmotion" description="name of checking diagnostic"/>
+	<arg name="warn_freq" default="50" description="reconnection frequency[Hz]"/>
 
 	<node pkg="witmotion_wt901" exec="witmotion_wt901_node" output="screen">
 		<param name="imu_topic" value="$(var imu_topic)"/>
@@ -14,5 +15,6 @@
 		<param name="imu_frame_id" value="$(var imu_frame_id)"/>
 		<param name="imu_freq" value="$(var imu_freq)"/>
 		<param name="diag_name" value="$(var diag_name)"/>
+		<param name="warn_freq" value="$(var warn_freq)"/>
 	</node>
 </launch>
