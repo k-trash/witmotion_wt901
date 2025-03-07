@@ -59,7 +59,7 @@ int main(int argc, char *argv[]){
 	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
 	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
 
-	diag_sub = node->create_subscription<diagnostic_msgs::msg::DiagnosticArray>("/diagnostic", rclcpp::QoS(1000), std::bind(&diagCallback, std::placeholders::_1));
+	diag_sub = node->create_subscription<diagnostic_msgs::msg::DiagnosticArray>("/diagnostics", rclcpp::QoS(1000), std::bind(&diagCallback, std::placeholders::_1));
 
 	RCLCPP_INFO(node->get_logger(), "Accelaration calibration finished");
 
@@ -125,11 +125,12 @@ void serialCallback(int32_t signal_){
 
 void diagCallback(const diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg_){
 	for(auto itr=msg_->status.begin(); itr!=msg_->status.end();itr++){
-		if(itr->name == node->get_parameter("diag_name").as_string()){
+		if(itr->name.compare(node->get_parameter("diag_name").as_string()) == 0){
 			switch(itr->level){
 				case diagnostic_msgs::msg::DiagnosticStatus::WARN:
 				case diagnostic_msgs::msg::DiagnosticStatus::ERROR:
 				case diagnostic_msgs::msg::DiagnosticStatus::STALE:
+					RCLCPP_INFO(node->get_logger(), "IMU : Catch diagnostic message");
 					serial.closeSerial();
 					serial.reconnectSerial();
 					break;
