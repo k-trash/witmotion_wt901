@@ -12,7 +12,6 @@
 #include <serial_connect/serial_connect.hpp>
 
 void serialCallback(int32_t signal_);
-void diagCallback(const diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg_);
 void timerCallback(void);
 void accelCalibration(void);
 uint16_t getCrc(uint8_t *datas_, uint8_t size_);
@@ -29,8 +28,8 @@ const double acc_range = 16.0f;
 const double gyr_range = 2000.0f;
 const double mag_range = 1.0f;
 const double ang_range = 180.0f;
-volatile uint8_t check_cnt = 0u;
-uint8_t warn_cnt = 0u;
+volatile uint16_t check_cnt = 0u;
+uint16_t warn_cnt = 0u;
 
 int main(int argc, char *argv[]){
 	rclcpp::init(argc, argv);
@@ -41,16 +40,15 @@ int main(int argc, char *argv[]){
 	node->declare_parameter<std::string>("mag_topic", "mag/data_raw");
 	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
 	node->declare_parameter<int64_t>("imu_freq", 100);
-	node->declare_parameter<std::string>("diag_name", "witmotion");
-	node->declare_parameter<int64_t>("warn_freq", 50);
+	node->declare_parameter<int64_t>("warn_freq", 5);
 
 	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
 	serial.openSerial();
 
-	if((node->get_parameter("imu_freq").as_int()>>1) > node->get_parameter("warn_freq").as_int()){
-		warn_cnt = static_cast<uint8_t>(node->get_parameter("imu_freq").as_int()/node->get_parameter("warn_freq").as_int()) + 1;
+	if((node->get_parameter("imu_freq").as_int()/2) > node->get_parameter("warn_freq").as_int()){
+		warn_cnt = static_cast<uint16_t>(node->get_parameter("imu_freq").as_int()/node->get_parameter("warn_freq").as_int()) + 1;
 	}else{
-		warn_cnt = (node->get_parameter("imu_freq").as_int()>>1) + 1;
+		warn_cnt = 3;
 	}
 
 	accelCalibration();
@@ -58,8 +56,6 @@ int main(int argc, char *argv[]){
 	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
 	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
 	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
-
-	diag_sub = node->create_subscription<diagnostic_msgs::msg::DiagnosticArray>("/diagnostics", rclcpp::QoS(1000), std::bind(&diagCallback, std::placeholders::_1));
 
 	RCLCPP_INFO(node->get_logger(), "Accelaration calibration finished");
 
@@ -120,24 +116,6 @@ void serialCallback(int32_t signal_){
 		mag_pub->publish(mag_data);
 
 		check_cnt=0;
-	}
-}
-
-void diagCallback(const diagnostic_msgs::msg::DiagnosticArray::SharedPtr msg_){
-	for(auto itr=msg_->status.begin(); itr!=msg_->status.end();itr++){
-		if(itr->name.compare(node->get_parameter("diag_name").as_string()) == 0){
-			switch(itr->level){
-				case diagnostic_msgs::msg::DiagnosticStatus::WARN:
-				case diagnostic_msgs::msg::DiagnosticStatus::ERROR:
-				case diagnostic_msgs::msg::DiagnosticStatus::STALE:
-					RCLCPP_INFO(node->get_logger(), "IMU : Catch diagnostic message");
-					serial.closeSerial();
-					serial.reconnectSerial();
-					break;
-				default:
-					break;
-			}
-		}
 	}
 }
 
