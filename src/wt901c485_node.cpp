@@ -53,13 +53,13 @@ int main(int argc, char *argv[]){
 
 	accelCalibration();
 
+	serial.setInterrupt(&serialCallback);		//set uart receive interruption
+
 	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
 	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
 	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
 
 	RCLCPP_INFO(node->get_logger(), "Accelaration calibration finished");
-
-	serial.setInterrupt(&serialCallback);		//set uart receive interruption
 
 	rclcpp::spin(node);
 
