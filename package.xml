@@ -2,8 +2,8 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>witmotion_wt901</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <version>1.7.0</version>
+  <description>witmotion wt901c ros2 driver</description>
   <maintainer email="k.trash.t@gmail.com">k-trash</maintainer>
   <license>Apache-2.0</license>
 
@@ -13,7 +13,6 @@
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>diagnostic_msgs</depend>
   <depend>tf2</depend>
   <depend>tf2_msgs</depend>
   <depend>tf2_ros</depend>

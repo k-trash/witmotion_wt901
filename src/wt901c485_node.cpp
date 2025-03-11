@@ -7,7 +7,6 @@
 #include <sensor_msgs/msg/magnetic_field.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <geometry_msgs/msg/vector3.hpp>
-#include <diagnostic_msgs/msg/diagnostic_array.hpp>
 
 #include <serial_connect/serial_connect.hpp>
 
