@@ -13,7 +13,7 @@ speed_t checkBaudrate(const std::string baudrate_){
 	}
 
 	for(auto itr=baudrates.begin(); itr!=baudrates.end();itr++){
-		if(itr->int_baud == std::atoi(baud_str.c_str())){
+		if(itr->int_baud == static_cast<uint32_t>(std::atoi(baud_str.c_str()))){
 			return itr->speed_baud;
 		}
 	}
