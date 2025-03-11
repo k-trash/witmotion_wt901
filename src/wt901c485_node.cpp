@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
 	rclcpp::init(argc, argv);
 	node = rclcpp::Node::make_shared("imu_node");
 
-	node->declare_parameter<std::string>("port", "/dev/ttyUSB0");
+	node->declare_parameter<std::string>("port", "/dev/witmotion_imu");
 	node->declare_parameter<std::string>("imu_topic", "imu/data_raw");
 	node->declare_parameter<std::string>("mag_topic", "mag/data_raw");
 	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
