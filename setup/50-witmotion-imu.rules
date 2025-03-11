@@ -1,0 +1,1 @@
+SUBSYSTEM=="tty", ATTRS{idVendor}=="", ATTRS{idProduct}=="", SYMLINK+="witmotion_imu"
