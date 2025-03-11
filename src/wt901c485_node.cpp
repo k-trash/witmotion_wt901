@@ -19,6 +19,7 @@ rclcpp::Node::SharedPtr node;
 rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub;
 rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr mag_pub;
 rclcpp::TimerBase::SharedPtr timer;
+rclcpp::Subscription<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr diag_sub;
 
 SerialConnect serial;
 
@@ -26,6 +27,8 @@ const double acc_range = 16.0f;
 const double gyr_range = 2000.0f;
 const double mag_range = 1.0f;
 const double ang_range = 180.0f;
+volatile uint16_t check_cnt = 0u;
+uint16_t warn_cnt = 0u;
 
 int main(int argc, char *argv[]){
 	rclcpp::init(argc, argv);
@@ -36,19 +39,26 @@ int main(int argc, char *argv[]){
 	node->declare_parameter<std::string>("mag_topic", "mag/data_raw");
 	node->declare_parameter<std::string>("imu_frame_id", "imu_link");
 	node->declare_parameter<int64_t>("imu_freq", 100);
+	node->declare_parameter<int64_t>("warn_freq", 5);
 
 	serial.setSerial(node->get_parameter("port").as_string(), B115200, true);
 	serial.openSerial();
 
+	if((node->get_parameter("imu_freq").as_int()/2) > node->get_parameter("warn_freq").as_int()){
+		warn_cnt = static_cast<uint16_t>(node->get_parameter("imu_freq").as_int()/node->get_parameter("warn_freq").as_int()) + 1;
+	}else{
+		warn_cnt = 3;
+	}
+
 	accelCalibration();
+
+	serial.setInterrupt(&serialCallback);		//set uart receive interruption
 
 	imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(node->get_parameter("imu_topic").as_string(), 10);
 	mag_pub = node->create_publisher<sensor_msgs::msg::MagneticField>(node->get_parameter("mag_topic").as_string(), 10);
 	timer = node->create_wall_timer(std::chrono::milliseconds(1000/node->get_parameter("imu_freq").as_int()), &timerCallback);
 
 	RCLCPP_INFO(node->get_logger(), "Accelaration calibration finished");
-
-	serial.setInterrupt(&serialCallback);		//set uart receive interruption
 
 	rclcpp::spin(node);
 
@@ -103,6 +113,8 @@ void serialCallback(int32_t signal_){
 
 		imu_pub->publish(imu_data);
 		mag_pub->publish(mag_data);
+
+		check_cnt=0;
 	}
 }
 
@@ -121,6 +133,13 @@ void timerCallback(void){
 
 	send_data[6] = crc_code >> 8;		//crc code
 	send_data[7] = crc_code & 0xff;		//crc code
+
+	if(check_cnt++ > warn_cnt){
+		RCLCPP_WARN(node->get_logger(), "IMU : frequency drop is recognized");
+		serial.closeSerial();
+		serial.reconnectSerial();
+		check_cnt=0;
+	}
 
 	serial.writeSerial(send_data, 8);
 }
