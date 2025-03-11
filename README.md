@@ -18,14 +18,6 @@ cmake .. && make
 sudo make install
 ```
 
-### add user to dialout group
-
-```
-sudo gpasswd -a $USERNAME dialout
-```
-then reboot 
-
-
 ### clone repository
 
 ```
@@ -34,6 +26,14 @@ git clone https://github.com/k-trash/witmotion_wt901
 cd ..
 colcon build --symlink-install --packages-select witmotion_wt901
 ```
+
+### setup computer
+
+```
+cd <Your-ROS2-WS>/src/witmotion_wt901/setup
+sudo ./setup.bash
+```
+then reboot 
 
 ## Usage
 
