@@ -19,7 +19,6 @@ rclcpp::Node::SharedPtr node;
 rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub;
 rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr mag_pub;
 rclcpp::TimerBase::SharedPtr timer;
-rclcpp::Subscription<diagnostic_msgs::msg::DiagnosticArray>::SharedPtr diag_sub;
 
 SerialConnect serial;
 
